@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Machinery AI Assistant</title>
+<style>
+body{font-family:Arial;background:#101827;color:white;margin:0;padding:25px}
+main{max-width:750px;margin:auto}
+.card{background:#1d293b;padding:20px;border-radius:12px;margin:15px 0}
+h1{color:#60a5fa}
+input,select,button{padding:12px;margin:6px 0;border-radius:7px;border:0;width:100%;box-sizing:border-box}
+button{background:#2563eb;color:white;font-weight:bold;cursor:pointer}
+a{color:#60a5fa}
+small{color:#b8c4d5}
+</style>
+</head>
+<body>
+<main>
+<h1>Machinery AI Assistant</h1>
+<p>USA CAT Machinery Search Dashboard</p>
+
+<div class="card">
+<h3>Search Settings</h3>
+<label>Machine Category</label>
+<select id="machine">
+<option>CAT Motor Grader</option>
+<option>CAT Excavator</option>
+<option>CAT Backhoe Loader</option>
+</select>
+
+<label>Maximum Budget (USD)</label>
+<input id="budget" type="number" value="65000">
+
+<label>Search Website</label>
+<select id="site">
+<option>MachineryTrader</option>
+<option>Machinio</option>
+<option>Both</option>
+</select>
+
+<button onclick="search()">Find Machines</button>
+<p id="status">Ready for search.</p>
+</div>
+
+<div class="card">
+<h3>Your Search Limits</h3>
+<p>CAT Motor Grader: $65,000</p>
+<p>CAT Excavator: $40,000</p>
+<p>CAT Backhoe Loader: $35,000</p>
+<p>Location: USA only</p>
+</div>
+
+<div class="card">
+<h3>Search Results</h3>
+<div id="results">No searches yet.</div>
+</div>
+</main>
+
+<script>
+function search(){
+const machine=document.getElementById('machine').value;
+const budget=document.getElementById('budget').value;
+const site=document.getElementById('site').value;
+const query=encodeURIComponent(machine+" for sale USA under $"+budget);
+let links=[];
+if(site==="MachineryTrader"||site==="Both")
+links.push('<a target="_blank" href="https://www.machinerytrader.com/listings/for-sale/">MachineryTrader listings</a>');
+if(site==="Machinio"||site==="Both")
+links.push('<a target="_blank" href="https://www.machinio.com/">Machinio listings</a>');
+document.getElementById('results').innerHTML=
+links.join('<br>')+'<p>Search phrase: '+machine+' USA under $'+budget+'</p>';
+document.getElementById('status').textContent=
+'Search links ready. Listings have not yet been automatically verified.';
+}
+</script>
+</body>
+</html>
