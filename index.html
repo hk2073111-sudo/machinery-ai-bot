@@ -1,77 +1,127 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Machinery AI Assistant</title>
 <style>
-body{font-family:Arial;background:#101827;color:white;margin:0;padding:25px}
-main{max-width:750px;margin:auto}
-.card{background:#1d293b;padding:20px;border-radius:12px;margin:15px 0}
+*{box-sizing:border-box}
+body{margin:0;padding:20px;background:#101827;color:#f1f5f9;font-family:Arial,sans-serif}
+.container{max-width:760px;margin:auto}
 h1{color:#60a5fa}
-input,select,button{padding:12px;margin:6px 0;border-radius:7px;border:0;width:100%;box-sizing:border-box}
-button{background:#2563eb;color:white;font-weight:bold;cursor:pointer}
-a{color:#60a5fa}
-small{color:#b8c4d5}
+.card{background:#1e293b;padding:18px;border-radius:12px;margin:15px 0}
+label{display:block;margin:14px 0 7px}
+select,input,button{width:100%;padding:12px;border-radius:8px;border:1px solid #475569;font-size:16px}
+select,input{background:#0f172a;color:white}
+button{background:#2563eb;color:white;border:0;margin-top:18px;font-weight:bold;cursor:pointer}
+.result a{display:block;background:#334155;color:#93c5fd;padding:13px;margin:10px 0;border-radius:8px;text-decoration:none}
+.small{font-size:13px;color:#cbd5e1;line-height:1.5}
 </style>
 </head>
 <body>
-<main>
+<div class="container">
 <h1>Machinery AI Assistant</h1>
-<p>USA CAT Machinery Search Dashboard</p>
+<p>Machinery Search Dashboard</p>
 
 <div class="card">
-<h3>Search Settings</h3>
+<h2>Search Settings</h2>
+
 <label>Machine Category</label>
-<select id="machine">
-<option>CAT Motor Grader</option>
-<option>CAT Excavator</option>
-<option>CAT Backhoe Loader</option>
+<select id="machine" onchange="updateBudget()">
+<option value="CAT Motor Grader">CAT Motor Grader</option>
+<option value="CAT Excavator">CAT Excavator</option>
+<option value="CAT Backhoe Loader">CAT Backhoe Loader</option>
+<option value="Komatsu Excavator">Komatsu Excavator</option>
+<option value="CASE Backhoe Loader">CASE Backhoe Loader</option>
 </select>
 
 <label>Maximum Budget (USD)</label>
-<input id="budget" type="number" value="65000">
+<input id="budget" type="number" min="1" value="65000">
+
+<label>Select Country</label>
+<select id="country">
+<option value="USA" selected>🇺🇸 USA</option>
+<option value="Canada">🇨🇦 Canada</option>
+<option value="Australia">🇦🇺 Australia</option>
+</select>
 
 <label>Search Website</label>
 <select id="site">
-<option>MachineryTrader</option>
-<option>Machinio</option>
-<option>Both</option>
+<option value="both">Both websites</option>
+<option value="machinerytrader.com">MachineryTrader</option>
+<option value="machinio.com">Machinio</option>
 </select>
 
-<button onclick="search()">Find Machines</button>
-<p id="status">Ready for search.</p>
+<button onclick="searchMachines()">FIND MACHINES</button>
 </div>
 
 <div class="card">
-<h3>Your Search Limits</h3>
-<p>CAT Motor Grader: $65,000</p>
-<p>CAT Excavator: $40,000</p>
-<p>CAT Backhoe Loader: $35,000</p>
-<p>Location: USA only</p>
+<h2>Maximum Price Limits</h2>
+<p>CAT Motor Grader — $65,000</p>
+<p>CAT Excavator — $40,000</p>
+<p>CAT Backhoe Loader — $35,000</p>
+<p>Komatsu Excavator — $35,000</p>
+<p>CASE Backhoe Loader — $30,000</p>
 </div>
 
-<div class="card">
-<h3>Search Results</h3>
-<div id="results">No searches yet.</div>
+<div class="card result">
+<h2>Search Links</h2>
+<div id="results">Choose your machine and press FIND MACHINES.</div>
 </div>
-</main>
+
+<p class="small">
+Default country: USA. Available countries: USA, Canada and Australia.
+Search links open Google results restricted to MachineryTrader and Machinio.
+Listings, prices and machine details must be checked on the original websites.
+This dashboard does not yet perform automatic AI searching or contact dealers.
+</p>
+</div>
 
 <script>
-function search(){
-const machine=document.getElementById('machine').value;
-const budget=document.getElementById('budget').value;
-const site=document.getElementById('site').value;
-const query=encodeURIComponent(machine+" for sale USA under $"+budget);
-let links=[];
-if(site==="MachineryTrader"||site==="Both")
-links.push('<a target="_blank" href="https://www.machinerytrader.com/listings/for-sale/">MachineryTrader listings</a>');
-if(site==="Machinio"||site==="Both")
-links.push('<a target="_blank" href="https://www.machinio.com/">Machinio listings</a>');
-document.getElementById('results').innerHTML=
-links.join('<br>')+'<p>Search phrase: '+machine+' USA under $'+budget+'</p>';
-document.getElementById('status').textContent=
-'Search links ready. Listings have not yet been automatically verified.';
+const limits = {
+"CAT Motor Grader":65000,
+"CAT Excavator":40000,
+"CAT Backhoe Loader":35000,
+"Komatsu Excavator":35000,
+"CASE Backhoe Loader":30000
+};
+
+function updateBudget(){
+const machine=document.getElementById("machine").value;
+document.getElementById("budget").value=limits[machine];
+}
+
+function searchMachines(){
+const machine=document.getElementById("machine").value;
+const country=document.getElementById("country").value;
+const budget=Number(document.getElementById("budget").value);
+const site=document.getElementById("site").value;
+
+if(!Number.isFinite(budget)||budget<=0){
+document.getElementById("results").textContent="Enter a valid budget.";
+return;
+}
+
+const websites=[
+{domain:"machinerytrader.com",name:"Search MachineryTrader"},
+{domain:"machinio.com",name:"Search Machinio"}
+];
+
+const selected=site==="both"?websites:websites.filter(w=>w.domain===site);
+const results=document.getElementById("results");
+results.innerHTML="";
+
+selected.forEach(w=>{
+const query=`site:${w.domain} ${machine} for sale ${country} under $${budget} USD`;
+const url="https://www.google.com/search?q="+encodeURIComponent(query);
+const link=document.createElement("a");
+link.href=url;
+link.target="_blank";
+link.rel="noopener noreferrer";
+link.textContent=w.name+" — "+country;
+results.appendChild(link);
+});
 }
 </script>
 </body>
