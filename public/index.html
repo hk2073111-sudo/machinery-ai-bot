@@ -1,5 +1,349 @@
 
 <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Machinery AI Assistant</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:18px;background:#101827;color:#f1f5f9;font-family:Arial,sans-serif}
+.container{max-width:1000px;margin:auto}
+h1{color:#60a5fa;margin-bottom:5px}
+.sub{color:#94a3b8;margin-top:0}
+.card{background:#1e293b;padding:18px;border-radius:13px;margin:16px 0;border:1px solid #334155}
+h2{font-size:19px;color:#93c5fd;margin-top:0}
+label{display:block;margin:12px 0 5px;color:#cbd5e1;font-size:14px}
+input,select{width:100%;padding:12px;border-radius:8px;border:1px solid #475569;background:#0f172a;color:white;font-size:15px}
+button{padding:12px 16px;border:0;border-radius:8px;background:#2563eb;color:white;font-weight:bold;cursor:pointer;margin-top:14px}
+button:hover{background:#1d4ed8}
+.secondary{background:#475569}
+.danger{background:#b91c1c}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.result{background:#0f172a;padding:14px;border-radius:9px;margin-top:12px;border:1px solid #334155;overflow-wrap:anywhere}
+a{color:#60a5fa}
+.small{font-size:12px;color:#94a3b8}
+.machine{border:1px solid #475569;background:#0f172a;padding:14px;border-radius:10px;margin:12px 0}
+.machine h3{margin:0 0 8px;color:#93c5fd}
+.machine p{margin:6px 0;font-size:14px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+.actions button{margin-top:8px}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Machinery AI Assistant</h1>
+<p class="sub">Machinery Search & Comparison Dashboard</p>
+
+<div class="card">
+<h2>1. Find Machines</h2>
+
+<div class="grid">
+<div>
+<label>Machine Category</label>
+<select id="category">
+<option>CAT Motor Grader</option>
+<option>CAT Excavator</option>
+<option>CAT Backhoe Loader</option>
+<option>Komatsu Excavator</option>
+<option>CASE Backhoe Loader</option>
+</select>
+</div>
+
+<div>
+<label>Maximum Budget (USD)</label>
+<input id="budget" type="number" value="65000">
+</div>
+
+<div>
+<label>Country</label>
+<select id="country">
+<option>USA</option>
+<option>Canada</option>
+<option>Australia</option>
+</select>
+</div>
+
+<div>
+<label>Marketplace</label>
+<select id="marketplace">
+<option value="both">Both</option>
+<option value="machinerytrader">MachineryTrader</option>
+<option value="machinio">Machinio</option>
+</select>
+</div>
+
+<div>
+<label>Model / Extra Keywords</label>
+<input id="keywords" placeholder="Example: CAT 140G">
+</div>
+
+<div>
+<label>State / City</label>
+<input id="location" placeholder="Example: Texas">
+</div>
+</div>
+
+<p class="small" id="limitText"></p>
+<button onclick="searchMachines()">FIND MACHINES</button>
+<div id="searchResults"></div>
+</div>
+
+<div class="card">
+<h2>2. Add Machine Details</h2>
+<p class="small">Yahan kisi listing ki verified details manually enter karo.</p>
+
+<div class="grid">
+<div>
+<label>Machine Name / Model</label>
+<input id="mName" placeholder="CAT 140G Motor Grader">
+</div>
+<div>
+<label>Asking Price (USD)</label>
+<input id="mPrice" type="number" placeholder="45000">
+</div>
+<div>
+<label>Operating Hours</label>
+<input id="mHours" type="number" placeholder="8500">
+</div>
+<div>
+<label>Country</label>
+<select id="mCountry">
+<option>USA</option>
+<option>Canada</option>
+<option>Australia</option>
+</select>
+</div>
+<div>
+<label>State / City</label>
+<input id="mLocation" placeholder="Texas">
+</div>
+<div>
+<label>Marketplace</label>
+<select id="mMarketplace">
+<option>MachineryTrader</option>
+<option>Machinio</option>
+</select>
+</div>
+<div>
+<label>Seller Name</label>
+<input id="mSeller" placeholder="Seller name">
+</div>
+<div>
+<label>Seller Phone / Contact</label>
+<input id="mContact" placeholder="Contact details">
+</div>
+<div>
+<label>Listing URL</label>
+<input id="mURL" placeholder="https://...">
+</div>
+<div>
+<label>Photo URL</label>
+<input id="mPhoto" placeholder="https://...">
+</div>
+</div>
+
+<button onclick="addMachine()">ADD MACHINE</button>
+<div id="addMessage" class="small"></div>
+</div>
+
+<div class="card">
+<h2>3. Saved Machine Listings</h2>
+<p class="small">Added machines yahan show hongi. Compare dabakar machines select karo.</p>
+<div id="machineList"></div>
+</div>
+
+<div class="card">
+<h2>4. Compare Machines</h2>
+<div id="comparison">
+<p class="small">Abhi comparison ke liye machines add nahi ki gayi.</p>
+</div>
+<button class="secondary" onclick="compareMachines()">COMPARE SELECTED</button>
+</div>
+
+<p class="small">Note: Search creates targeted Google links. Listing details, prices, photos and seller contacts must be checked against the original marketplace listing. This dashboard does not automatically retrieve marketplace data.</p>
+
+</div>
+
+<script>
+const limits = {
+"CAT Motor Grader":65000,
+"CAT Excavator":40000,
+"CAT Backhoe Loader":35000,
+"Komatsu Excavator":35000,
+"CASE Backhoe Loader":30000
+};
+
+let machines = [];
+
+function updateLimit(){
+ const category=document.getElementById("category").value;
+ document.getElementById("limitText").textContent=
+ "Suggested maximum budget: $"+limits[category].toLocaleString()+" USD";
+}
+document.getElementById("category").addEventListener("change",updateLimit);
+updateLimit();
+
+function searchMachines(){
+ const category=document.getElementById("category").value;
+ const budget=Number(document.getElementById("budget").value);
+ const country=document.getElementById("country").value;
+ const marketplace=document.getElementById("marketplace").value;
+ const keywords=document.getElementById("keywords").value.trim();
+ const location=document.getElementById("location").value.trim();
+
+ if(!budget || budget<=0){
+  alert("Enter a valid budget.");
+  return;
+ }
+ if(budget>limits[category]){
+  alert("Budget is above the selected category limit of $"+limits[category]);
+  return;
+ }
+
+ let query=category+" "+keywords+" "+country+" "+location+
+ " for sale under $"+budget;
+
+ let sites=[];
+ if(marketplace==="both" || marketplace==="machinerytrader"){
+  sites.push(["MachineryTrader","https://www.google.com/search?q="+
+  encodeURIComponent("site:machinerytrader.com "+query)]);
+ }
+ if(marketplace==="both" || marketplace==="machinio"){
+  sites.push(["Machinio","https://www.google.com/search?q="+
+  encodeURIComponent("site:machinio.com "+query)]);
+ }
+
+ let html="<h3>Search Results</h3>";
+ sites.forEach(s=>{
+  html+='<div class="result"><b>'+s[0]+'</b><br><a target="_blank" rel="noopener" href="'+s[1]+'">OPEN SEARCH RESULTS</a></div>';
+ });
+
+ const imageURL="https://www.google.com/search?tbm=isch&q="+
+ encodeURIComponent(query);
+
+ html+='<div class="result"><b>Machine Images</b><br><a target="_blank" rel="noopener" href="'+imageURL+'">OPEN GOOGLE IMAGES</a></div>';
+
+ document.getElementById("searchResults").innerHTML=html;
+}
+
+function addMachine(){
+ const name=document.getElementById("mName").value.trim();
+ const price=Number(document.getElementById("mPrice").value);
+ const hours=document.getElementById("mHours").value;
+ const country=document.getElementById("mCountry").value;
+ const location=document.getElementById("mLocation").value.trim();
+ const marketplace=document.getElementById("mMarketplace").value;
+ const seller=document.getElementById("mSeller").value.trim();
+ const contact=document.getElementById("mContact").value.trim();
+ const url=document.getElementById("mURL").value.trim();
+ const photo=document.getElementById("mPhoto").value.trim();
+
+ if(!name || !price || price<=0){
+  alert("Machine name and valid price are required.");
+  return;
+ }
+ if(url && !/^https?:\/\//i.test(url)){
+  alert("Listing URL must start with http:// or https://");
+  return;
+ }
+ if(photo && !/^https?:\/\//i.test(photo)){
+  alert("Photo URL must start with http:// or https://");
+  return;
+ }
+
+ machines.push({name,price,hours,country,location,marketplace,seller,contact,url,photo});
+ renderMachines();
+
+ document.getElementById("addMessage").textContent="Machine added successfully.";
+
+ ["mName","mPrice","mHours","mLocation","mSeller","mContact","mURL","mPhoto"]
+ .forEach(id=>document.getElementById(id).value="");
+}
+
+function renderMachines(){
+ const box=document.getElementById("machineList");
+
+ if(machines.length===0){
+  box.innerHTML='<p class="small">No saved machines yet.</p>';
+  return;
+ }
+
+ box.innerHTML=machines.map((m,i)=>`
+ <div class="machine">
+ <h3>${escapeHTML(m.name)}</h3>
+ <p><b>Price:</b> $${m.price.toLocaleString()} USD</p>
+ <p><b>Hours:</b> ${escapeHTML(m.hours||"Not provided")}</p>
+ <p><b>Location:</b> ${escapeHTML(m.location||"Not provided")}, ${escapeHTML(m.country)}</p>
+ <p><b>Marketplace:</b> ${escapeHTML(m.marketplace)}</p>
+ <p><b>Seller:</b> ${escapeHTML(m.seller||"Not provided")}</p>
+ <p><b>Contact:</b> ${escapeHTML(m.contact||"Not provided")}</p>
+ ${m.url?`<p><a href="${escapeHTML(m.url)}" target="_blank" rel="noopener">OPEN ORIGINAL LISTING</a></p>`:""}
+ ${m.photo?`<p><a href="${escapeHTML(m.photo)}" target="_blank" rel="noopener">OPEN PHOTO</a></p>`:""}
+ <label><input type="checkbox" class="compareCheck" value="${i}" style="width:auto"> Select for comparison</label>
+ <button class="danger" onclick="deleteMachine(${i})">DELETE</button>
+ </div>`).join("");
+}
+
+function escapeHTML(value){
+ return String(value).replace(/[&<>"']/g,c=>({
+ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+ }[c]));
+}
+
+function deleteMachine(index){
+ machines.splice(index,1);
+ renderMachines();
+ document.getElementById("comparison").innerHTML=
+ '<p class="small">Select machines and compare again.</p>';
+}
+
+function compareMachines(){
+ const selected=[...document.querySelectorAll(".compareCheck:checked")]
+ .map(el=>machines[Number(el.value)]);
+
+ if(selected.length<2){
+  alert("Select at least two machines to compare.");
+  return;
+ }
+
+ let html='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;text-align:left">';
+ html+='<tr><th style="padding:9px">Details</th>'+
+ selected.map(m=>'<th style="padding:9px">'+escapeHTML(m.name)+'</th>').join('')+'</tr>';
+
+ const rows=[
+  ["Price",m=>"$"+m.price.toLocaleString()+" USD"],
+  ["Hours",m=>m.hours||"Not provided"],
+  ["Country",m=>m.country],
+  ["Location",m=>m.location||"Not provided"],
+  ["Marketplace",m=>m.marketplace],
+  ["Seller",m=>m.seller||"Not provided"],
+  ["Contact",m=>m.contact||"Not provided"],
+  ["Listing",m=>m.url?'<a target="_blank" rel="noopener" href="'+escapeHTML(m.url)+'">Open listing</a>':"Not provided"]
+ ];
+
+ rows.forEach(row=>{
+  html+='<tr><td style="padding:9px;border-top:1px solid #475569"><b>'+
+  row[0]+'</b></td>';
+  selected.forEach(m=>{
+   const value=row[1](m);
+   html+='<td style="padding:9px;border-top:1px solid #475569">'+
+   (row[0]==="Listing"?value:escapeHTML(value))+'</td>';
+  });
+  html+='</tr>';
+ });
+
+ html+='</table></div>';
+ document.getElementById("comparison").innerHTML=html;
+}
+
+renderMachines();
+</script>
+</body>
+</html>
+
+<!DOCTYPE html>
 <!DOCTYPE html>
 <html lang="en">
 <head>
