@@ -2,5 +2,5 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "machinery-ai-bot",
   "main": "src/index.js",
-  "compatibility_date": "2026-11-21"
+  "compatibility_date": "2026-11-20"
 }
