@@ -1,5 +1,186 @@
 
+<!DOCTYPE 
 <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Machinery AI Assistant</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:20px;background:#101827;color:#f1f5f9;font-family:Arial,sans-serif}
+.container{max-width:800px;margin:auto}
+h1{color:#60a5fa}
+.card{background:#1e293b;padding:18px;border-radius:12px;margin:15px 0}
+label{display:block;margin:14px 0 7px}
+select,input,button{width:100%;padding:12px;border-radius:8px;border:1px solid #475569;font-size:16px}
+select,input{background:#0f172a;color:white}
+button{background:#2563eb;color:white;border:0;margin-top:18px;font-weight:bold;cursor:pointer}
+.result a{display:block;background:#334155;color:#93c5fd;padding:14px;margin:10px 0;border-radius:8px;text-decoration:none}
+.small{font-size:13px;color:#cbd5e1;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>Machinery AI Assistant</h1>
+<p>Machine Search Dashboard — USA, Canada & Australia</p>
+
+<div class="card">
+<h2>Search Settings</h2>
+
+<label>Machine Category</label>
+<select id="machine" onchange="updateBudget()">
+<option>CAT Motor Grader</option>
+<option>CAT Excavator</option>
+<option>CAT Backhoe Loader</option>
+<option>Komatsu Excavator</option>
+<option>CASE Backhoe Loader</option>
+</select>
+
+<label>Maximum Budget (USD)</label>
+<input id="budget" type="number" min="1" value="65000">
+
+<label>Country</label>
+<select id="country">
+<option value="USA">USA</option>
+<option value="Canada">Canada</option>
+<option value="Australia">Australia</option>
+</select>
+
+<label>Marketplace</label>
+<select id="site">
+<option value="both">Both websites</option>
+<option value="machinerytrader.com">MachineryTrader</option>
+<option value="machinio.com">Machinio</option>
+</select>
+
+<label>Model / Extra Keywords (Optional)</label>
+<input id="keywords" placeholder="Example: 140G, 320B, 2015">
+
+<label>State / City (Optional)</label>
+<input id="location" placeholder="Example: Texas, Florida">
+
+<label>Search Type</label>
+<select id="searchType">
+<option value="both">Web + Images</option>
+<option value="web">Web listings</option>
+<option value="images">Machine images</option>
+</select>
+
+<button onclick="searchMachines()">FIND MACHINES</button>
+<p class="small" id="status">Ready to search.</p>
+</div>
+
+<div class="card">
+<h2>Maximum Price Limits</h2>
+<p>CAT Motor Grader — $65,000</p>
+<p>CAT Excavator — $40,000</p>
+<p>CAT Backhoe Loader — $35,000</p>
+<p>Komatsu Excavator — $35,000</p>
+<p>CASE Backhoe Loader — $30,000</p>
+</div>
+
+<div class="card result">
+<h2>Search Results Links</h2>
+<div id="results">Choose your settings and press FIND MACHINES.</div>
+</div>
+
+<p class="small">
+This free version generates targeted Google search links.
+It does not automatically retrieve or verify marketplace listings.
+Prices, machine hours, photos and seller details must be
+verified on the original listing.
+</p>
+
+</div>
+
+<script>
+const limits = {
+"CAT Motor Grader":65000,
+"CAT Excavator":40000,
+"CAT Backhoe Loader":35000,
+"Komatsu Excavator":35000,
+"CASE Backhoe Loader":30000
+};
+
+function updateBudget(){
+const machine=document.getElementById("machine").value;
+document.getElementById("budget").value=limits[machine];
+document.getElementById("budget").max=limits[machine];
+}
+
+function searchMachines(){
+const machine=document.getElementById("machine").value;
+const country=document.getElementById("country").value;
+const budget=Number(document.getElementById("budget").value);
+const site=document.getElementById("site").value;
+const keywords=document.getElementById("keywords").value.trim();
+const location=document.getElementById("location").value.trim();
+const type=document.getElementById("searchType").value;
+
+const results=document.getElementById("results");
+const status=document.getElementById("status");
+
+results.replaceChildren();
+
+if(!Number.isFinite(budget)||budget<=0){
+status.textContent="Enter a valid budget.";
+return;
+}
+
+if(budget>limits[machine]){
+status.textContent="Budget exceeds the maximum limit for this machine.";
+return;
+}
+
+const websites=[
+{domain:"machinerytrader.com",name:"MachineryTrader"},
+{domain:"machinio.com",name:"Machinio"}
+];
+
+const selected=site==="both"
+?websites
+:websites.filter(w=>w.domain===site);
+
+const extra=[machine,"for sale",country,location,keywords,
+"under $"+budget+" USD"].filter(Boolean).join(" ");
+
+let count=0;
+
+selected.forEach(w=>{
+const query=`site:${w.domain} ${extra}`;
+
+if(type==="web"||type==="both"){
+const a=document.createElement("a");
+a.href="https://www.google.com/search?q="+encodeURIComponent(query);
+a.target="_blank";
+a.rel="noopener noreferrer";
+a.textContent="Search "+w.name+" — Web Listings";
+results.appendChild(a);
+count++;
+}
+
+if(type==="images"||type==="both"){
+const a=document.createElement("a");
+a.href="https://www.google.com/search?tbm=isch&q="+encodeURIComponent(query);
+a.target="_blank";
+a.rel="noopener noreferrer";
+a.textContent="Search "+w.name+" — Images";
+results.appendChild(a);
+count++;
+}
+});
+
+status.textContent=count+" search links generated. Verify each listing's actual price and details.";
+}
+
+updateBudget();
+</script>
+
+</body>
+</html>
+html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
