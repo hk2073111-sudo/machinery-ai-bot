@@ -1,6 +1,13 @@
 {
+{
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "machinery-ai-bot",
   "main": "src/index.js",
-  "compatibility_date": "2026-11-20"
+  "compatibility_date": "2026-11-20",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS"
+  }
 }
+
+  
