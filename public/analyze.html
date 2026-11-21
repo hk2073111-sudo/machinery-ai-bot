@@ -1,0 +1,123 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Machine Analyzer</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:25px;background:#101827;color:#f1f5f9;font-family:Arial,sans-serif}
+main{max-width:750px;margin:auto}
+h1{color:#60a5fa}
+.card{background:#1e293b;padding:20px;border-radius:14px;margin:16px 0}
+.item{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #334155}
+input[type=checkbox]{width:20px;height:20px;cursor:pointer}
+button{background:#2563eb;color:white;border:0;padding:14px 20px;border-radius:9px;cursor:pointer;font-weight:bold}
+textarea{width:100%;background:#0f172a;color:white;padding:14px;border:1px solid #475569;border-radius:9px;min-height:140px}
+small{color:#94a3b8}
+</style>
+</head>
+<body>
+<main>
+<h1>Smart Machine Analyzer</h1>
+<p>Mark the information and photos already available in the machine listing.</p>
+
+<div class="card">
+<h3>Machine Photos</h3>
+<div id="photos"></div>
+</div>
+
+<div class="card">
+<h3>Machine Details</h3>
+<div id="details"></div>
+</div>
+
+<button onclick="analyze()">FIND MISSING INFORMATION</button>
+
+<div class="card">
+<h3>Missing Items</h3>
+<div id="result">Analysis not started.</div>
+</div>
+
+<div class="card">
+<h3>Dealer Message</h3>
+<textarea id="message" placeholder="Missing information message will appear here..."></textarea>
+<br><br>
+<button onclick="copyMessage()">COPY MESSAGE</button>
+</div>
+</main>
+
+<script>
+const photoItems = [
+"Overall machine photos",
+"Front and rear photos",
+"Both side photos",
+"Engine photos",
+"Hydraulic pump photos",
+"Hour meter photo",
+"Serial number plate photo"
+];
+
+const detailItems = [
+"Machine model",
+"Manufacturing year",
+"Working hours",
+"Engine details",
+"Hydraulic pump details",
+"Serial number"
+];
+
+function createItems(container,items,prefix){
+ document.getElementById(container).innerHTML=items.map((item,i)=>`
+ <label class="item">
+ <span>${item}</span>
+ <input type="checkbox" id="${prefix}${i}">
+ </label>`).join("");
+}
+
+createItems("photos",photoItems,"p");
+createItems("details",detailItems,"d");
+
+function analyze(){
+ const missingPhotos=photoItems.filter((item,i)=>
+ !document.getElementById("p"+i).checked);
+
+ const missingDetails=detailItems.filter((item,i)=>
+ !document.getElementById("d"+i).checked);
+
+ const missing=[
+ ...missingPhotos.map(x=>"Photo: "+x),
+ ...missingDetails.map(x=>"Information: "+x)
+ ];
+
+ document.getElementById("result").innerHTML=missing.length
+ ?missing.map(x=>"<p>❌ "+x+"</p>").join("")
+ :"<p>All listed items are marked available.</p>";
+
+ let message="";
+
+ if(missing.length){
+ message="Hello, thank you for sharing the machine details. I have reviewed the listing. Could you please provide only the following missing items?\n\n";
+ message+=missing.map(x=>"- "+x).join("\n");
+ message+="\n\nThank you.";
+ }else{
+ message="Thank you for sharing all the requested machine information.";
+ }
+
+ document.getElementById("message").value=message;
+}
+
+function copyMessage(){
+ const box=document.getElementById("message");
+ box.select();
+ if(navigator.clipboard && window.isSecureContext){
+ navigator.clipboard.writeText(box.value).then(()=>alert("Message copied."));
+ }else{
+ document.execCommand("copy");
+ alert("Message copied.");
+ }
+}
+</script>
+</body>
+</html>
